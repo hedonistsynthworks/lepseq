@@ -38,17 +38,41 @@ gate_track = {
   length = 8
 }
 
+function on_set_gate_step(position)
+end
+
+function on_set_note_step(position, value)
+  notes_track.steps[position] = value
+end
+
+function on_set_gate_multiplier(multiplier)
+end
+
+function light_steps()
+  for i, step in ipairs(gate_track.steps) do
+    if step then g:led(i, 1, 11) end
+  end
+
+  for i, step in ipairs(notes_track.steps) do
+    for note = 1,step do
+      g:led(i, 8 - note,5)      
+    end
+  end
+end
+
 g.key = function(x,y,z)
   -- set step
   -- -- x: 1,8 y: 1
   -- set pitch
   -- -- x: 1,8 y: 3,7
+  print(x.." "..y.." "..z)
+  if (1 <= x) and (x <= 8) and (3 <= y) and (y <= 7) and (z == 1) then on_set_note_step(x, 8-y) end
   -- pattern length
   -- -- x: 1,8 y:2
   -- -- x: 1,8 y:8
   -- clock multiplier for each sequencer
   -- -- x: 9,12 y:2
-  -- -- x: 9,12 y8
+  -- -- x: 9,12 y8  
   -- reverse 
   -- -- x: 16 y: 2
   -- -- x: 16 y: 8
@@ -56,24 +80,35 @@ g.key = function(x,y,z)
 end
 
 function step()
-  -- print("notes "..tostring(notes_track.position).." "..tostring(notes_track.steps[notes_track.position]))
-  -- print("gates "..tostring(gate_track.position).." "..tostring(gate_track.steps[gate_track.position]))
+  gates = ""
+  notes = ""
+  for key, value in ipairs(gate_track.steps) do
+    gates = gates..", "..tostring(value)
+  end
+  for key, value in ipairs(notes_track.steps) do
+    gates = gates..", "..tostring(value)
+  end
+  print(gates)
   notes_track.position = (notes_track.position % notes_track.length) + 1
   gate_track.position = (gate_track.position % gate_track.length) + 1
 
   draw_grid()
 end
 
-
-function draw_grid()
-  reset_grid_before_draw()
+function light_current_step()
   -- gate
   g:led(gate_track.position, 1, 15)
   -- note
   for note = 1, notes_track.steps[notes_track.position] do
-    print("drawing"..tostring(notes_track.position).." "..tostring(16-note))
     g:led(notes_track.position, 8 - note,15)
   end
+end
+
+function draw_grid()
+  reset_grid_before_draw()
+  -- light steps first then highlight after
+  light_steps()
+  light_current_step()
   g:refresh()
 end
 
