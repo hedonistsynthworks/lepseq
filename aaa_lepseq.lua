@@ -59,6 +59,8 @@ function on_set_note_step(position, value)
 end
 
 function on_set_divisor(track, divisor)
+  track.divisor = divisor
+  --print("on_set_divisor "..tostring(divisor))
 end
 
 function on_set_length(track, length)
@@ -151,9 +153,18 @@ function light_current_step()
   -- gate
   g:led(gate_track.position, 1, 15)
   -- note
-  for note = 1, note_track.steps[note_track.position] do
-    g:led(note_track.position, 8 - note,15)
+  if note_track.steps[note_track.position] > 0 then
+    for note = 1, note_track.steps[note_track.position] do
+      g:led(note_track.position, 8 - note,15)
+    end
+  else
+    g:led(note_track.position, 7, 15)
   end
+end
+
+function light_utils()
+  g:led(note_track.divisor + 8, 8, 15)
+  g:led(gate_track.divisor + 8, 2, 15)
 end
 
 function draw_grid()
@@ -162,6 +173,7 @@ function draw_grid()
   light_steps()
   light_last_valid_note()
   light_current_step()
+  light_utils()
   g:refresh()
 end
 
