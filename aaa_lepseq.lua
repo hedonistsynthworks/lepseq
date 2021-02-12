@@ -31,13 +31,17 @@ notes = {72, 75, 79, 82} -- c eb g bb
 note_track = {
   steps = {1,1,1,1,1,1,1,1},
   position = 1,
-  length = 8
+  length = 8,
+  counter = 1, -- is there something in beatclock i could use for divisors?
+  divisor = 1
 }
 
 gate_track = {
   steps = {false, false, false, false, false, false, false, false},
   position = 1,
-  length = 8
+  length = 8,
+  counter = 1, -- is there something in beatclock i could use for divisors?
+  divisor = 1
 }
 
 function on_set_gate_step(position)
@@ -48,7 +52,7 @@ function on_set_note_step(position, value)
   note_track.steps[position] = value
 end
 
-function on_set_gate_multiplier(multiplier)
+function on_set_gate_divisor(divisor)
 end
 
 function on_set_length(track, length)
@@ -85,7 +89,7 @@ g.key = function(x,y,z)
   if (1 <= x) and (x <= 8) and y == 2 then on_set_length(gate_track, x) end
   if (1 <= x) and (x <= 8) and y == 8 then on_set_length(note_track, x) end
   
-  -- clock multiplier for each sequencer
+  -- clock divisor for each sequencer
   -- -- x: 9,12 y:2
   -- -- x: 9,12 y8  
   
@@ -110,8 +114,15 @@ function step()
     gates = gates..", "..tostring(value)
   end
   print(gates)
-  note_track.position = (note_track.position % note_track.length) + 1
-  gate_track.position = (gate_track.position % gate_track.length) + 1
+  note_track.counter = note_track.counter + 1
+  gate_track.counter = gate_track.counter + 1
+
+  if note_track.counter % note_track.divisor == 0 then
+    note_track.position = (note_track.position % note_track.length) + 1
+  end
+  if gate_track.counter % gate_track.divisor == 0 then
+    gate_track.position = (gate_track.position % gate_track.length) + 1
+  end
   if gate_track.steps[gate_track.position] then play() end
   draw_grid()
 end
