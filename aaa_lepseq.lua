@@ -1,9 +1,11 @@
 local BeatClock = require 'beatclock'
+local MusicUtil = require "musicutil"
 
 local clk = BeatClock.new()
 
 g = grid.connect()
-
+engine.name = "Passersby"
+Passersby = include "passersby/lib/passersby_engine"
 
 function reset_grid_before_draw()
   g:all(0)
@@ -39,6 +41,7 @@ gate_track = {
 }
 
 function on_set_gate_step(position)
+  gate_track.steps[position] = true
 end
 
 function on_set_note_step(position, value)
@@ -70,11 +73,11 @@ end
 g.key = function(x,y,z)
   -- set step
   -- -- x: 1,8 y: 1
+  if (1 <= x) and (x <= 8) and (y == 1) and (z == 0) then on_set_gate_step(x, 8-y) end
   
   -- set pitch
   -- -- x: 1,8 y: 3,7
-  print(x.." "..y.." "..z)
-  if (1 <= x) and (x <= 8) and (3 <= y) and (y <= 7) and (z == 1) then on_set_note_step(x, 8-y) end
+  if (1 <= x) and (x <= 8) and (3 <= y) and (y <= 7) and (z == 0) then on_set_note_step(x, 8-y) end
   
   -- pattern length
   -- -- x: 1,8 y:2
@@ -93,6 +96,10 @@ g.key = function(x,y,z)
   -- triplet?
 end
 
+function play()
+  engine.noteOn(1, MusicUtil.note_num_to_freq(note_track.steps[note_track.position]))
+end
+
 function step()
   gates = ""
   notes = ""
@@ -105,7 +112,7 @@ function step()
   print(gates)
   note_track.position = (note_track.position % note_track.length) + 1
   gate_track.position = (gate_track.position % gate_track.length) + 1
-
+  if gate_track.steps[gate_track.position] then play() end
   draw_grid()
 end
 
